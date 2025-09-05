@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Carrito de Compras</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 20px; }
+    .producto { border: 1px solid #ddd; padding: 15px; margin: 10px; background: #fff; border-radius: 8px; }
+    button { background: #25D366; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #1ebe5d; }
+    .carrito { margin-top: 20px; padding: 15px; background: #fff; border-radius: 8px; border: 1px solid #ddd; }
+    .contador { font-size: 16px; font-weight: bold; color: #e63946; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <h2>Carrito de Compras</h2>
+
+  <!-- Producto -->
+  <div class="producto">
+    <h3>Adhesivo Eternel</h3>
+    <p id="precioTexto"><b>Precio:</b> $0 MXN</p>
+    <div id="contador" class="contador"></div>
+    <label>Cantidad: 
+      <input type="number" id="cantidad" value="1" min="1">
+    </label>
+    <br><br>
+    <button onclick="agregarCarrito()">Agregar al carrito</button>
+  </div>
+
+  <!-- Carrito -->
+  <div class="carrito" id="carrito">
+    <h3>Tu pedido</h3>
+    <ul id="lista"></ul>
+    <p><b>Total:</b> $<span id="total">0</span> MXN</p>
+    <button onclick="finalizarPedido()">Finalizar en WhatsApp</button>
+  </div>
+
+  <script>
+    let carrito = [];
+    let total = 0;
+
+    // Fecha límite preventa (15 días desde hoy)
+    const fechaInicio = new Date(); // hoy
+    const fechaFinPreventa = new Date();
+    fechaFinPreventa.setDate(fechaInicio.getDate() + 15);
+
+    let precio;
+
+    function actualizarPrecio() {
+      if (new Date() <= fechaFinPreventa) {
+        precio = 450; // preventa
+        document.getElementById("precioTexto").innerHTML = `<b>Precio preventa:</b> $${precio} MXN`;
+      } else {
+        precio = 690; // normal
+        document.getElementById("precioTexto").innerHTML = `<b>Precio normal:</b> $${precio} MXN`;
+        document.getElementById("contador").innerHTML = "La preventa ha terminado 🚨";
+      }
+    }
+
+    function contadorRegresivo() {
+      let ahora = new Date().getTime();
+      let tiempoRestante = fechaFinPreventa - ahora;
+
+      if (tiempoRestante <= 0) {
+        document.getElementById("contador").innerHTML = "La preventa ha terminado 🚨";
+        actualizarPrecio();
+        return;
+      }
+
+      let dias = Math.floor(tiempoRestante / (1000 * 60 * 60 * 24));
+      let horas = Math.floor((tiempoRestante % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      let minutos = Math.floor((tiempoRestante % (1000 * 60 * 60)) / (1000 * 60));
+      let segundos = Math.floor((tiempoRestante % (1000 * 60)) / 1000);
+
+      document.getElementById("contador").innerHTML =
+        `⏳ Preventa termina en: ${dias}d ${horas}h ${minutos}m ${segundos}s`;
+
+      actualizarPrecio();
+    }
+
+    setInterval(contadorRegresivo, 1000);
+
+    function agregarCarrito() {
+      let cantidad = parseInt(document.getElementById("cantidad").value);
+      let producto = "Adhesivo Eternel";
+
+      carrito.push({ producto, cantidad, precio });
+      total += precio * cantidad;
+      mostrarCarrito();
+    }
+
+    function mostrarCarrito() {
+      let lista = document.getElementById("lista");
+      lista.innerHTML = "";
+      carrito.forEach(item => {
+        let li = document.createElement("li");
+        li.textContent = `${item.cantidad} x ${item.producto} = $${item.cantidad * item.precio} MXN`;
+        lista.appendChild(li);
+      });
+      document.getElementById("total").textContent = total;
+    }
+
+    function finalizarPedido() {
+      let mensaje = "¡Hola! Quiero hacer el siguiente pedido:%0A%0A";
+      carrito.forEach(item => {
+        mensaje += `${item.cantidad} x ${item.producto} = $${item.cantidad * item.precio} MXN%0A`;
+      });
+      mensaje += `%0ATotal: $${total} MXN`;
+
+      let telefono = "529992739241"; // 52 = México
+      let url = `https://wa.me/${telefono}?text=${mensaje}`;
+      window.open(url, "_blank");
+    }
+  </script>
+
+</body>
+</html>
